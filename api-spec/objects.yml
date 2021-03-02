@@ -35,6 +35,7 @@ components:
         confirmed:
           type: boolean
           description: is the action confirmed?
+          readOnly: true
     user:
       type: object
       properties:
@@ -162,7 +163,18 @@ components:
                 items: 
                   $ref: "#/components/schemas/logObject"
     logResponse:
-      description: new logging entry was created
+      description: new logging entry waits to be confirmed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              log-entry:
+                $ref: "#/components/schemas/logObject"
+              token:
+                type: string
+    logConfirmedResponse:
+      description: new logging entry was created and confirmed
       content:
         application/json:
           schema:
@@ -191,6 +203,17 @@ components:
             $ref: "#/components/schemas/error"
 
   requestBodies:
+    confirmLog:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+              confirmed:
+                type: boolean
     newLog:
       required: true
       content:
