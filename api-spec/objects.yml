@@ -1,0 +1,199 @@
+components:
+  schemas:
+    logObject:
+      type: object
+      properties:
+        id:
+          type: string
+          readOnly: true
+        date:
+          type: integer
+          description: unix time stamp
+        issuedBy:
+          description: which service issued this
+          type: string
+        action:
+          type: string
+        byUser:
+          type: string
+          description: username of the acting user
+        old:
+          oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+        new:
+          oneOf:
+            - type: string
+            - type: number
+            - type: integer
+            - type: boolean
+        property:
+          type: string
+          description: property changed
+    user:
+      type: object
+      properties:
+        username:
+          type: string
+        passwd:
+          type: string
+        role:
+          type: string
+          enum:
+            - 'admin'
+            - 'user'
+        email:
+          type: string
+          format: email
+        nickname:
+          type: string
+          description: visible name of the user, usually the username
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/userDevice'
+    userDevice:
+      type: object
+      properties:
+        clienttype:
+          type: string
+          enum:
+            - andapp
+            - iosapp
+            - winapp
+            - macapp
+            - linapp
+            - safari
+            - chrome
+            - firefox
+            - browser
+            - no-display-device
+        clientName:
+          type: string
+          description: name of the users device, which the user chose
+          example: computer start/finish
+        clientId:
+          type: string
+          description: client id saved in the central database
+          pattern: '^[a-zA-Z0-9\-\_]{11}$'
+        clientIdString:
+          type: string
+    error:
+      type: object
+      properties:
+        code: 
+          type: string
+        msg:
+          type: string
+      additionalProperties: true
+
+  parameters:
+    pagination:
+      in: query
+      name: pagination
+      description: Sets the pagination and sorting. If not provided, standard pagination applies and no particular sorting is applied.
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        properties:
+          sort: 
+            type: string
+            enum:
+              - "asc"
+              - "desc"
+          sortBy:
+            type: string
+            description: field in the data model requested
+          limit:
+            type: integer
+            format: int32
+            maximum: 25
+            minimum: 1
+            default: 15
+          page:
+            type: integer
+            format: int32
+            minimum: 1
+            default: 1
+    include:
+      in: query
+      name: include
+      description: Includes the fields of the object, default is all enabled
+      schema:
+        type: array
+        items:
+          type: string
+          description: field names of the object, that are included in the answer
+      style: pipeDelimited
+      explode: false
+    filter:
+      in: query
+      name: filter
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        additionalProperties:
+          type: string
+          pattern: '^(([<>]:?\d+)|:\d+(_\d+)?)$'
+    logid:
+      in: path
+      name: logid
+      schema:
+        type: string
+      required: true
+
+  responses:
+    getLog:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                type: array
+                items: 
+                  $ref: "#/components/schemas/logObject"
+    logResponse:
+      description: new logging entry was created
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              log-entry:
+                $ref:  "#/components/schemas/logObject"
+
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    NotFound:
+      description: Resource Not Found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+    UnexpectedError:
+      description: Unexpected Error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/error"
+
+  requestBodies:
+    newLog:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
+                $ref:  "#/components/schemas/logObject"
