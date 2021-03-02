@@ -32,6 +32,9 @@ components:
         property:
           type: string
           description: property changed
+        confirmed:
+          type: boolean
+          description: is the action confirmed?
     user:
       type: object
       properties:
